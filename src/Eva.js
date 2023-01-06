@@ -27,7 +27,12 @@ class Eva {
 
       //make a new env
       //eval the value
-      return env.define(name, this.eval(value));
+      return env.define(name, this.eval(value, env));
+    }
+
+    if (exp[0] === "set") {
+      const [_, name, value] = exp;
+      return env.assign(name, this.eval(value, env));
     }
 
     if (exp[0] === "+") {

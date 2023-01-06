@@ -11,10 +11,10 @@ class Environment {
 
   //update the value
 
-  // assign(name, value) {
-  //   this.resolve(name).record[name] = value;
-  //   return value;
-  // }
+  assign(name, value) {
+    this.resolve(name).record[name] = value;
+    return value;
+  }
 
   //
   lookup(name) {
