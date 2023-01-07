@@ -1,10 +1,9 @@
 const assert = require("assert");
-const { Eva } = require("../../Eva");
 
-module.exports = (eva) => {
+module.exports = (eval) => {
   //block:
   assert.strictEqual(
-    eva.eval([
+    eval.eval([
       "begin",
       ["var", "x", 10],
       ["var", "y", 20],
@@ -14,7 +13,7 @@ module.exports = (eva) => {
   );
 
   assert.strictEqual(
-    eva.eval([
+    eval.eval([
       "begin",
       ["var", "x", 10],
       ["begin", ["var", "x", 20], "x"],
@@ -24,7 +23,7 @@ module.exports = (eva) => {
   );
 
   assert.strictEqual(
-    eva.eval([
+    eval.eval([
       "begin",
       ["var", "value", 10],
       ["var", "result", ["begin", ["var", "x", ["+", "value", 10]], "x"]],
@@ -34,7 +33,7 @@ module.exports = (eva) => {
   );
 
   assert.strictEqual(
-    eva.eval([
+    eval.eval([
       "begin",
       ["var", "data", 10],
       ["begin", ["set", "data", ["+", 5, 10]]],

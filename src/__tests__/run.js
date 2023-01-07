@@ -1,5 +1,5 @@
 const assert = require("assert");
-const { Eva } = require("../Eva");
+const { Eval } = require("../Eval");
 
 const tests = [
   require("./tests/test_operation"),
@@ -17,12 +17,12 @@ const tests = [
   require("./tests/test_class"),
 ];
 
-const eva = new Eva();
-eva.evalGlobal(["print", '"test "', '"start!"']);
+const eval = new Eval();
+eval.evalGlobal(["print", '"test "', '"start!"']);
 //basic test
-assert.strictEqual(eva.evalGlobal(1), 1);
-assert.strictEqual(eva.evalGlobal('"string"'), "string");
+assert.strictEqual(eval.evalGlobal(1), 1);
+assert.strictEqual(eval.evalGlobal('"string"'), "string");
 
-tests.forEach((test) => test(eva));
+tests.forEach((test) => test(eval));
 //varible test
-eva.evalGlobal(["print", '"all "', '"assertions passed!"']);
+eval.evalGlobal(["print", '"all "', '"assertions passed!"']);

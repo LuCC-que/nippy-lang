@@ -1,7 +1,7 @@
 const assert = require("assert");
-module.exports = (eva) => {
+module.exports = (eval) => {
   assert.strictEqual(
-    eva.evalGlobal(
+    eval.evalGlobal(
       [
         "class",
         "Point",
@@ -34,7 +34,7 @@ module.exports = (eva) => {
 
   //inheretance
   assert.strictEqual(
-    eva.evalGlobal(
+    eval.evalGlobal(
       [
         "class",
         "Point3D",

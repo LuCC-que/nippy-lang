@@ -1,7 +1,7 @@
 const { isNumber, isString, isVariableName } = require("./utils/Helper");
 const { Transformer } = require("./utils/Transfomer");
 const { Environment } = require("./utils/Environment");
-class Eva {
+class Eval {
   constructor(global = GlobalEnvironment) {
     this.global = global;
     this._transformer = new Transformer();
@@ -304,4 +304,4 @@ const GlobalEnvironment = new Environment({
   },
 });
 
-module.exports = { Eva };
+module.exports = { Eval };

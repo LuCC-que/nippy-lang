@@ -1,8 +1,8 @@
 const assert = require("assert");
 
-module.exports = (eva) => {
+module.exports = (eval) => {
   assert.strictEqual(
-    eva.eval([
+    eval.eval([
       "begin",
       ["var", "result", 0],
       [

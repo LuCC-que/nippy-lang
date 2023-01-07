@@ -1,8 +1,8 @@
 const assert = require("assert");
 
-module.exports = (eva) => {
+module.exports = (eval) => {
   assert.strictEqual(
-    eva.eval([
+    eval.eval([
       "begin",
       ["def", "square", ["x"], ["*", "x", "x"]],
       ["square", 2],
@@ -10,7 +10,7 @@ module.exports = (eva) => {
     4
   );
   assert.strictEqual(
-    eva.eval([
+    eval.eval([
       "begin",
       [
         "def",
@@ -23,7 +23,7 @@ module.exports = (eva) => {
     230
   );
   assert.strictEqual(
-    eva.eval([
+    eval.eval([
       "begin",
       ["var", "value", 100],
       [
@@ -44,7 +44,7 @@ module.exports = (eva) => {
   );
   //recursive call
   assert.strictEqual(
-    eva.eval([
+    eval.eval([
       "begin",
       [
         "def",

@@ -1,7 +1,7 @@
 const assert = require("assert");
-module.exports = (eva) => {
+module.exports = (eval) => {
   assert.strictEqual(
-    eva.eval([
+    eval.eval([
       "begin",
       [
         "def",
@@ -20,10 +20,10 @@ module.exports = (eva) => {
     300
   );
 
-  assert.strictEqual(eva.eval([["lambda", ["x"], ["*", "x", "x"]], 2]), 4);
+  assert.strictEqual(eval.eval([["lambda", ["x"], ["*", "x", "x"]], 2]), 4);
 
   assert.strictEqual(
-    eva.eval([
+    eval.eval([
       "begin",
       ["var", "square", ["lambda", ["x"], ["*", "x", "x"]]],
       ["square", 2],
