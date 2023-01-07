@@ -7,10 +7,10 @@ const isString = (exp) => {
 };
 
 const isVariableName = (exp) => {
-  return typeof exp === "string" && /^[a-zA-Z][a-zA-Z0-9_]*$/.test(exp);
+  return typeof exp === "string" && /^[+\-*/&|!<>=a-zA-Z0-9_]*$/.test(exp);
 };
 
-///^[+\-*/&|!<>=a-zA-Z0-9_]*$/
+//
 module.exports = {
   isNumber,
   isString,

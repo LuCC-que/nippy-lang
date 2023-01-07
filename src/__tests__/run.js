@@ -6,17 +6,11 @@ const tests = [
   require("./tests/test_operation"),
   require("./tests/test_scope"),
   require("./tests/test_variable"),
+  require("./tests/test_if_condition"),
+  require("./tests/test_while"),
 ];
 
-const eva = new Eva(
-  new Environment({
-    null: null,
-    true: true,
-    false: false,
-
-    VERSION: "0.1",
-  })
-);
+const eva = new Eva();
 
 //basic test
 assert.strictEqual(eva.eval(1), 1);

@@ -1,7 +1,7 @@
 const { isNumber, isString, isVariableName } = require("./utils/Helper");
 const { Environment } = require("./utils/Environment");
 class Eva {
-  constructor(global = new Environment()) {
+  constructor(global = GlobalEnvironment) {
     this.global = global;
   }
   eval(exp, env = this.global) {
@@ -35,23 +35,44 @@ class Eva {
       return env.assign(name, this.eval(value, env));
     }
 
-    if (exp[0] === "+") {
-      return this.eval(exp[1], env) + this.eval(exp[2], env);
-    }
-    if (exp[0] === "*") {
-      return this.eval(exp[1], env) * this.eval(exp[2], env);
+    if (exp[0] == "if") {
+      const [_tag, condition, consequent, alternate] = exp;
+
+      if (this.eval(condition, env)) {
+        return this.eval(consequent, env);
+      }
+
+      return this.eval(alternate, env);
     }
 
-    if (exp[0] === "-") {
-      return this.eval(exp[1], env) - this.eval(exp[2], env);
+    if (exp[0] === "while") {
+      const [_tag, condition, body] = exp;
+      let result;
+      while (this.eval(condition, env)) {
+        result = this.eval(body, env);
+      }
+
+      return result;
     }
 
-    if (exp[0] === "/") {
-      return this.eval(exp[1], env) / this.eval(exp[2], env);
+    if (Array.isArray(exp)) {
+      //find the function object in the environment
+      const fn = this.eval(exp[0], env);
+
+      //these args maybe anothe experssion, another varable
+      //any other things, so we need to eval them and then save
+      //in the array, slice skip the first (function),
+      const args = exp.slice(1).map((arg) => this.eval(arg, env));
+
+      //pre-defined function will be returned as function
+      if (typeof fn === "function") {
+        return fn(...args);
+      }
+
+      return this._callUserDefinedFunction(fn, args);
     }
-    if (exp[0] === "%") {
-      return this.eval(exp[1]) % this.eval(exp[2]);
-    }
+
+    throw `Unimplemented : ${JSON.stringify(exp)}`;
   }
 
   _evalBlock(block, blockEnv) {
@@ -65,5 +86,70 @@ class Eva {
     return result;
   }
 }
+
+const GlobalEnvironment = new Environment({
+  null: null,
+  true: true,
+  false: false,
+
+  VERSION: "0.1",
+
+  //-----------------
+  //native function
+
+  // adding operation
+  "+"(op1, op2) {
+    return op1 + op2;
+  },
+
+  "-"(op1, op2 = null) {
+    if (op2 == null) {
+      return -op1;
+    }
+    return op1 - op2;
+  },
+  "*"(op1, op2) {
+    return op1 * op2;
+  },
+  "/"(op1, op2) {
+    if (op2 == 0) {
+      throw "NIPPY: Zero devision";
+    }
+    return op1 / op2;
+  },
+  "%"(op1, op2) {
+    return op1 % op2;
+  },
+
+  //binary operation:
+  ">"(op1, op2) {
+    return op1 > op2;
+  },
+
+  ">="(op1, op2 = null) {
+    return op1 >= op2;
+  },
+  "<"(op1, op2) {
+    return op1 < op2;
+  },
+  "<="(op1, op2) {
+    if (op2 == 0) {
+      throw "NIPPY: Zero devision";
+    }
+    return op1 <= op2;
+  },
+  "="(op1, op2) {
+    return op1 === op2;
+  },
+
+  //unary operation:
+  "!"(op1) {
+    return !op1;
+  },
+
+  print(...args) {
+    console.log(...args);
+  },
+});
 
 module.exports = { Eva };
