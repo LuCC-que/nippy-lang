@@ -55,6 +55,16 @@ class Eva {
       return result;
     }
 
+    if (exp[0] === "def") {
+      const [_tag, name, params, body] = exp;
+      const fn = {
+        params,
+        body,
+        env,
+      };
+      return env.define(name, fn);
+    }
+
     if (Array.isArray(exp)) {
       //find the function object in the environment
       const fn = this.eval(exp[0], env);
@@ -69,10 +79,31 @@ class Eva {
         return fn(...args);
       }
 
-      return this._callUserDefinedFunction(fn, args);
+      // 2 user-definded function
+      const activationRecord = {};
+
+      // assigning the value to the paremeter here
+      fn.params.forEach((param, index) => {
+        activationRecord[param] = args[index];
+      });
+
+      //local env has a lexical scoping
+      const activationEnv = new Environment(activationRecord, fn.env);
+
+      return this._evalBody(fn.body, activationEnv);
+
+      // return this._callUserDefinedFunction(fn, args);
     }
 
     throw `Unimplemented : ${JSON.stringify(exp)}`;
+  }
+
+  _evalBody(body, env) {
+    if (body[0] === "begin") {
+      return this._evalBlock(body, env);
+    }
+
+    return this.eval(body, env);
   }
 
   _evalBlock(block, blockEnv) {

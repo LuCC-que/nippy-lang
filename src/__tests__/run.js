@@ -8,15 +8,16 @@ const tests = [
   require("./tests/test_variable"),
   require("./tests/test_if_condition"),
   require("./tests/test_while"),
+  require("./tests/test_function"),
+  require("./tests/test_user_defined_function"),
 ];
 
 const eva = new Eva();
-
+eva.eval(["print", '"test "', '"start!"']);
 //basic test
 assert.strictEqual(eva.eval(1), 1);
 assert.strictEqual(eva.eval('"string"'), "string");
 
 tests.forEach((test) => test(eva));
 //varible test
-
-console.log("all assertion passed!");
+eva.eval(["print", '"all "', '"assertions passed!"']);
