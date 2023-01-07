@@ -57,12 +57,26 @@ class Eva {
 
     if (exp[0] === "def") {
       const [_tag, name, params, body] = exp;
-      const fn = {
+      // const fn = {
+      //   params,
+      //   body,
+      //   env,
+      // };
+      // return env.define(name, fn);
+
+      //JIT
+      const varExp = ["var", name, ["lambda", params, body]];
+      return this.eval(varExp, env);
+    }
+
+    if (exp[0] === "lambda") {
+      const [_tag, params, body] = exp;
+
+      return {
         params,
         body,
         env,
       };
-      return env.define(name, fn);
     }
 
     if (Array.isArray(exp)) {

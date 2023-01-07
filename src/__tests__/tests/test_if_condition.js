@@ -1,5 +1,4 @@
 const assert = require("assert");
-const { Eva } = require("../../Eva");
 
 module.exports = (eva) => {
   assert.strictEqual(

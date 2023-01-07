@@ -42,4 +42,18 @@ module.exports = (eva) => {
     ]),
     160
   );
+  //recursive call
+  assert.strictEqual(
+    eva.eval([
+      "begin",
+      [
+        "def",
+        "factorial",
+        ["x"],
+        ["if", ["=", "x", 1], 1, ["*", "x", ["factorial", ["-", "x", 1]]]],
+      ],
+      ["factorial", 5],
+    ]),
+    120
+  );
 };
