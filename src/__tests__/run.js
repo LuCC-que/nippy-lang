@@ -18,11 +18,11 @@ const tests = [
 ];
 
 const eva = new Eva();
-eva.eval(["print", '"test "', '"start!"']);
+eva.evalGlobal(["print", '"test "', '"start!"']);
 //basic test
-assert.strictEqual(eva.eval(1), 1);
-assert.strictEqual(eva.eval('"string"'), "string");
+assert.strictEqual(eva.evalGlobal(1), 1);
+assert.strictEqual(eva.evalGlobal('"string"'), "string");
 
 tests.forEach((test) => test(eva));
 //varible test
-eva.eval(["print", '"all "', '"assertions passed!"']);
+eva.evalGlobal(["print", '"all "', '"assertions passed!"']);

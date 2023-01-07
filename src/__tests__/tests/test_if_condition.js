@@ -2,7 +2,7 @@ const assert = require("assert");
 
 module.exports = (eva) => {
   assert.strictEqual(
-    eva.eval([
+    eva.evalGlobal([
       "begin",
       ["var", "x", 10],
       ["var", "y", 0],
