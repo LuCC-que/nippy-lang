@@ -1,8 +1,10 @@
 const { isNumber, isString, isVariableName } = require("./utils/Helper");
+const { Transformer } = require("./utils/Transfomer");
 const { Environment } = require("./utils/Environment");
 class Eva {
   constructor(global = GlobalEnvironment) {
     this.global = global;
+    this._transformer = new Transformer();
   }
   eval(exp, env = this.global) {
     if (isNumber(exp)) {
@@ -31,8 +33,16 @@ class Eva {
     }
 
     if (exp[0] === "set") {
-      const [_, name, value] = exp;
-      return env.assign(name, this.eval(value, env));
+      const [_, ref, value] = exp;
+
+      if (ref[0] === "prop") {
+        const [_tag, instance, propName] = ref;
+        const instanceEnv = this.eval(instance, env);
+
+        return instanceEnv.define(propName, this.eval(value, env));
+      }
+
+      return env.assign(ref, this.eval(value, env));
     }
 
     if (exp[0] == "if") {
@@ -55,18 +65,70 @@ class Eva {
       return result;
     }
 
-    if (exp[0] === "def") {
-      const [_tag, name, params, body] = exp;
-      // const fn = {
-      //   params,
-      //   body,
-      //   env,
-      // };
-      // return env.define(name, fn);
+    //----------------------
+    //do-while
+    if (exp[0] == "do-while") {
+      const whileExp = this._transformer.transformDoWhileToWhile(exp);
+      return this.eval(whileExp, env);
+    }
 
-      //JIT
-      const varExp = ["var", name, ["lambda", params, body]];
+    //-------------------------
+    //for-expression to-do
+
+    if (exp[0] == "for") {
+      const whileExp = this._transformer.transformForToWhile(exp);
+      return this.eval(whileExp, env);
+    }
+
+    //-------------------------
+    //Increment: (++ foo) to-do
+
+    if (exp[0] == "++") {
+      const whileExp = this._transformer.transformIncToSet(exp);
+      return this.eval(whileExp, env);
+    }
+
+    //-------------------------
+    //Increment: (-- foo) to-do
+    if (exp[0] == "--") {
+      const whileExp = this._transformer.transformDecToSet(exp);
+      return this.eval(whileExp, env);
+    }
+
+    //-------------------------
+    //Increment: (-= foo dec) to-do
+
+    if (exp[0] == "-=") {
+      const whileExp = this._transformer.transformDecEqToSet(exp);
+      return this.eval(whileExp, env);
+    }
+
+    //-------------------------
+    //Increment: (+= foo) to-do
+    if (exp[0] == "+=") {
+      const whileExp = this._transformer.transformIncEqToSet(exp);
+      return this.eval(whileExp, env);
+    }
+
+    if (exp[0] === "def") {
+      // const [_tag, name, params, body] = exp;
+      // // const fn = {
+      // //   params,
+      // //   body,
+      // //   env,
+      // // };
+      // // return env.define(name, fn);
+
+      // //JIT
+      // const varExp = ["var", name, ["lambda", params, body]];
+
+      const varExp = this._transformer.transformDefToVarLambda(exp);
       return this.eval(varExp, env);
+    }
+
+    if (exp[0] === "switch") {
+      const ifExp = this._transformer.transformSwitchToIf(exp);
+      return this.eval(ifExp, env);
     }
 
     if (exp[0] === "lambda") {
@@ -77,6 +139,40 @@ class Eva {
         body,
         env,
       };
+    }
+    //----------------------------------
+    // OOB module
+    if (exp[0] === "class") {
+      const [_tag, name, parent, body] = exp;
+
+      //null return null
+      const parentEnv = this.eval(parent, env) || env;
+      const classEnv = new Environment({}, parentEnv);
+
+      this._evalBody(body, classEnv);
+      return env.define(name, classEnv);
+    }
+
+    if (exp[0] === "new") {
+      const classEnv = this.eval(exp[1], env);
+      const instanceEnv = new Environment({}, classEnv);
+
+      const args = exp.slice(2).map((arg) => this.eval(arg, env));
+
+      this._callUserDefinedFunction(classEnv.lookup("constructor"), [
+        instanceEnv,
+        ...args,
+      ]);
+
+      return instanceEnv;
+    }
+
+    // property access
+    if (exp[0] === "prop") {
+      const [_tag, instance, name] = exp;
+      const instanceEnv = this.eval(instance, env);
+
+      return instanceEnv.lookup(name);
     }
 
     if (Array.isArray(exp)) {
@@ -93,25 +189,26 @@ class Eva {
         return fn(...args);
       }
 
-      // 2 user-definded function
-      const activationRecord = {};
-
-      // assigning the value to the paremeter here
-      fn.params.forEach((param, index) => {
-        activationRecord[param] = args[index];
-      });
-
-      //local env has a lexical scoping
-      const activationEnv = new Environment(activationRecord, fn.env);
-
-      return this._evalBody(fn.body, activationEnv);
-
-      // return this._callUserDefinedFunction(fn, args);
+      return this._callUserDefinedFunction(fn, args);
     }
 
     throw `Unimplemented : ${JSON.stringify(exp)}`;
   }
 
+  _callUserDefinedFunction(fn, args) {
+    // 2 user-definded function
+    const activationRecord = {};
+
+    // assigning the value to the paremeter here
+    fn.params.forEach((param, index) => {
+      activationRecord[param] = args[index];
+    });
+
+    //local env has a lexical scoping
+    const activationEnv = new Environment(activationRecord, fn.env);
+
+    return this._evalBody(fn.body, activationEnv);
+  }
   _evalBody(body, env) {
     if (body[0] === "begin") {
       return this._evalBlock(body, env);

@@ -1,6 +1,5 @@
 const assert = require("assert");
 const { Eva } = require("../Eva");
-const { Environment } = require("../utils/Environment");
 
 const tests = [
   require("./tests/test_operation"),
@@ -11,6 +10,11 @@ const tests = [
   require("./tests/test_function"),
   require("./tests/test_user_defined_function"),
   require("./tests/test_lambda"),
+  require("./tests/test_switch"),
+  require("./tests/test_for"),
+  require("./tests/test_inc_inc_var"),
+  require("./tests/tests_dec_dec_var"),
+  require("./tests/test_class"),
 ];
 
 const eva = new Eva();
