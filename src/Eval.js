@@ -12,7 +12,7 @@ class Eval {
   }
 
   eval(exp, env = this.global) {
-    if (isNumber(exp)) {
+    if (isNumber(exp) || exp == true || exp == false || exp == null) {
       return exp;
     }
 
@@ -298,8 +298,22 @@ const GlobalEnvironment = new Environment({
   "<="(op1, op2) {
     return op1 <= op2;
   },
+  "=="(op1, op2) {
+    return op1 == op2;
+  },
   "="(op1, op2) {
-    return op1 === op2;
+    return op1 == op2;
+  },
+  "!="(op1, op2) {
+    return op1 != op2;
+  },
+
+  //binary Logical operation:
+  "&&"(op1, op2) {
+    return op1 && op2;
+  },
+  "||"(op1, op2) {
+    return op1 || op2;
   },
 
   //unary operation:

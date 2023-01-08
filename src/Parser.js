@@ -81,6 +81,31 @@ class Parser {
   }
 
   /**
+   * IfStatement
+   *  : 'if' '(' Expression ')' Statement
+   *  | 'if' '(' Expression ')' Statement 'else' Statement
+   */
+
+  IfStatement(to_eat = null) {
+    this._eat(to_eat == null ? "if" : to_eat);
+    this._eat("(");
+    const test = this.Expression();
+    this._eat(")");
+    const consequent = this.Statement();
+    let alternate;
+    if (this._lookahead != null && this._lookahead.type === "elif") {
+      alternate = this.IfStatement("elif");
+    } else {
+      alternate =
+        this._lookahead != null && this._lookahead.type === "else"
+          ? this._eat("else") && this.Statement()
+          : null;
+    }
+
+    return this._mod.IfStatement(test, consequent, alternate);
+  }
+
+  /**
    * VariableStatement
    *  : 'let' VariableDeclarationList ';'
    */
@@ -192,7 +217,7 @@ class Parser {
     //   return this._factory.Lambda(params, body);
     // }
 
-    const left = this.AdditiveExpression();
+    const left = this.LogicalORExpression();
 
     if (!_isAssignmentOperator(this._lookahead.type)) {
       return left;
@@ -203,6 +228,63 @@ class Parser {
       _checkValidAssignmentTarget(left, this.mode),
       this.AssignmentExpression()
     );
+  }
+
+  /**
+   * AssignmentOperator
+   *  : SIMPLE_ASSIGN
+   *  | COMPLEX_ASSIGN
+   */
+
+  AssignmentOperator() {
+    if (this._lookahead.type === "SIMPLE_ASSIGN") {
+      return this._eat("SIMPLE_ASSIGN");
+    }
+    return this._eat("COMPLEX_ASSIGN");
+  }
+
+  /**
+   * LogicalORExpression
+   *  : LogicalANDExpression LOGICAL_OR LogicalORExpression
+   *  | LogicalORExpression
+   *  ;
+   */
+
+  LogicalORExpression() {
+    return this.LogicalExpression("LogicalANDExpression", "LOGICAL_OR");
+  }
+
+  /**
+   * LogicalORExpression
+   *  : EqualityExpression LOGICAL_AND LogicalORExpression
+   *  | EqualityExpression
+   *  ;
+   */
+
+  LogicalANDExpression() {
+    return this.LogicalExpression("EqualityExpression", "LOGICAL_AND");
+  }
+
+  /**
+   * EqualityExpression
+   *  : RelationalExpression EQUALITY_OPERATOR EqualityExpression
+   *  | RelationalExpression
+   *  ;
+   */
+
+  EqualityExpression() {
+    return this.BinaryExpression("RelationalExpression", "EQUALITY_OPERATOR");
+  }
+
+  /**
+   * RelationalExpression: >, >=, <, <=
+   *  : AdditiveExpression
+   *  | AdditiveExpression RELATIONAL_OPERATOR RelationalExpression
+   *
+   */
+
+  RelationalExpression() {
+    return this.BinaryExpression("AdditiveExpression", "RELATIONAL_OPERATOR");
   }
 
   /**
@@ -256,7 +338,19 @@ class Parser {
       const operator = this._eat(operatorToken);
       const right = this[builderName]();
 
+      //push to the left, add new as top
       left = this._mod.BinaryExpression(operator, left, right);
+    }
+
+    return left;
+  }
+
+  LogicalExpression(BuilderName, operatorToken) {
+    let left = this[BuilderName]();
+    while (this._lookahead.type === operatorToken) {
+      const operator = this._eat(operatorToken);
+      const right = this[BuilderName]();
+      left = this._mod.LogicalExpression(operator, left, right);
     }
 
     return left;
@@ -285,19 +379,6 @@ class Parser {
       default:
         return this.LeftHandSideExpression();
     }
-  }
-
-  /**
-   * AssignmentOperator
-   *  : SIMPLE_ASSIGN
-   *  | COMPLEX_ASSIGN
-   */
-
-  AssignmentOperator() {
-    if (this._lookahead.type === "SIMPLE_ASSIGN") {
-      return this._eat("SIMPLE_ASSIGN");
-    }
-    return this._eat("COMPLEX_ASSIGN");
   }
 
   /**
@@ -350,6 +431,12 @@ class Parser {
         return this.NumericLiteral();
       case "STRING":
         return this.StringLiteral();
+      case "true":
+        return this.BooleanLiteral(true);
+      case "false":
+        return this.BooleanLiteral(false);
+      case "null":
+        return this.NullLiteral(null);
     }
 
     throw new SyntaxError(
@@ -376,6 +463,29 @@ class Parser {
   StringLiteral() {
     const token = this._eat("STRING");
     return this._mod.StringLiteral(token.value);
+  }
+
+  /**
+   * BooleanLiteral
+   *  : 'true'
+   *  | 'false'
+   *  ;
+   */
+
+  BooleanLiteral(value) {
+    this._eat(value ? "true" : "false");
+    return this._mod.BooleanLiteral(value);
+  }
+
+  /**
+   * NullLiteral
+   *  : 'null'
+   *  ;
+   */
+
+  NullLiteral(value) {
+    this._eat("null");
+    return this._mod.NullLiteral(value);
   }
 
   _eat(tokenType) {

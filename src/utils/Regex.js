@@ -75,6 +75,8 @@ const Spec = [
   [/^\blet\b/, "let"],
   [/^\bif\b/, "if"],
   [/^\belse\b/, "else"],
+  [/^\belif\b/, "elif"],
+  [/^\belse\sif\b/, "elif"],
   [/^\btrue\b/, "true"],
   [/^\bfalse\b/, "false"],
   [/^\bnull\b/, "null"],
@@ -96,7 +98,7 @@ const Spec = [
   [/^\w+/, "IDENTIFIER"],
 
   /*------------------------
-    Identifiers case
+    EQUALITY_OPERATOR ntifiers case
    */
   [/^[=!]=/, "EQUALITY_OPERATOR"],
 
@@ -116,7 +118,7 @@ const Spec = [
   [/^[><]=?/, "RELATIONAL_OPERATOR"],
   /*------------------------
     Logical cases
-    >, >=, <, <=
+    &&, \\, !
    */
   [/^&&/, "LOGICAL_AND"],
   [/^\|\|/, "LOGICAL_OR"],

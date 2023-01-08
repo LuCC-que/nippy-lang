@@ -39,10 +39,10 @@ const ParserTests = [
   require("./test_parser/math-test.js"),
   require("./test_parser/assignment-test.js"),
   require("./test_parser/variable-test.js"),
-  // require("./test_parser/if-test.js"),
-  // require("./test_parser/relational-test.js"),
-  // require("./test_parser/equality-test.js"),
-  // require("./test_parser/logical-test.js"),
+  require("./test_parser/if-test.js"),
+  require("./test_parser/relational-test.js"),
+  require("./test_parser/equality-test.js"),
+  require("./test_parser/logical-test.js"),
   // require("./test_parser/unary-test.js"),
   // require("./test_parser/while-test.js"),
   // require("./test_parser/do-while-test.js"),
@@ -64,7 +64,8 @@ eval.evalGlobal(["print", '"test parser----------------"', '"start!"']);
 //---------self defined tests--------------
 const program = `  
 
-  let x = 5;
+  x > 2 && y < 2 || z == 2;
+
 
   `;
 const ast = parser.parse(program, "AST");
@@ -84,6 +85,8 @@ const Bothtests = [
   require("./test_both/test_math"),
   require("./test_both/test_block"),
   require("./test_both/test_variable"),
+  require("./test_both/test_if_condition"),
+  require("./test_both/test_logical"),
 ];
 
 const testBoth = (CODE, expected) => {
@@ -99,10 +102,8 @@ Bothtests.forEach((test) => test(testBoth));
 
 const CODE = `  
 
-
-let x , y = 5;
-x = y * 3;
-x + y -(10 / 5);
+  let x = 3, y = 5, z= 3;
+  x > 2 && y < 2 || z == 2;
 
   `;
 

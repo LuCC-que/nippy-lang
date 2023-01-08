@@ -41,6 +41,14 @@ const AST = {
       right,
     };
   },
+  LogicalExpression(operator, left, right) {
+    return {
+      type: "LogicalExpression",
+      operator: operator.value,
+      left,
+      right,
+    };
+  },
 
   Identifier(name) {
     return {
@@ -71,6 +79,29 @@ const AST = {
       init,
     };
   },
+
+  IfStatement(test, consequent, alternate) {
+    return {
+      type: "IfStatement",
+      test,
+      consequent,
+      alternate,
+    };
+  },
+
+  BooleanLiteral(value) {
+    return {
+      type: "BooleanLiteral",
+      value,
+    };
+  },
+
+  NullLiteral(value) {
+    return {
+      type: "NullLiteral",
+      value,
+    };
+  },
 };
 const lAST = {
   Program(body) {
@@ -95,12 +126,16 @@ const lAST = {
   BinaryExpression(operator, left, right) {
     return [operator.value, left, right];
   },
+
+  LogicalExpression(operator, left, right) {
+    return [operator.value, left, right];
+  },
   Identifier(name) {
     return name;
   },
 
-  AssignmentExpression(_, left, right) {
-    return ["set", left, right];
+  AssignmentExpression(operator, left, right) {
+    return [operator === "=" ? "set" : operator, left, right];
   },
   VariableStatement(declarations) {
     let list = ["var"];
@@ -112,6 +147,18 @@ const lAST = {
 
   VariableDeclaration(id, init) {
     return [id, init == null ? "null" : init];
+  },
+
+  IfStatement(test, consequent, alternate) {
+    return ["if", test, consequent, alternate];
+  },
+
+  BooleanLiteral(value) {
+    return value;
+  },
+
+  NullLiteral(value) {
+    return value;
   },
 };
 
