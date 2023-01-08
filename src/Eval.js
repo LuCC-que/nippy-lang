@@ -285,9 +285,6 @@ const GlobalEnvironment = new Environment({
     return op1 < op2;
   },
   "<="(op1, op2) {
-    if (op2 == 0) {
-      throw "NIPPY: Zero devision";
-    }
     return op1 <= op2;
   },
   "="(op1, op2) {

@@ -22,7 +22,7 @@ class Transformer {
 
       current = current[3];
     }
-    console.log(ifExp);
+    // console.log(ifExp);
     return ifExp;
   }
 

@@ -10,9 +10,14 @@ const isVariableName = (exp) => {
   return typeof exp === "string" && /^[+\-*/&|!<>=a-zA-Z0-9_]*$/.test(exp);
 };
 
+const _isLiteral = (tokenType) => {
+  return ["NUMBER", "STRING", "true", "false", "null"].includes(tokenType);
+};
+
 //
 module.exports = {
   isNumber,
   isString,
   isVariableName,
+  _isLiteral,
 };
