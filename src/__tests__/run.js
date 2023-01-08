@@ -23,7 +23,8 @@ const eval = new Eval();
 eval.evalGlobal(["print", '"test Interpreter----------------"', '"start!"']);
 //basic test
 assert.strictEqual(eval.evalGlobal(1), 1);
-assert.strictEqual(eval.evalGlobal('"string"'), "string");
+assert.strictEqual(eval.evalGlobal(["var", "x", 10, "y", 10]), 10);
+assert.strictEqual(eval.evalGlobal("x"), 10);
 
 InterpreterTests.forEach((test) => test(eval));
 //varible test
@@ -36,8 +37,8 @@ const ParserTests = [
   require("./test_parser/block-test.js"),
   require("./test_parser/empty-statement-test.js"),
   require("./test_parser/math-test.js"),
-  // require("./test_parser/assignment-test.js"),
-  // require("./test_parser/variable-test.js"),
+  require("./test_parser/assignment-test.js"),
+  require("./test_parser/variable-test.js"),
   // require("./test_parser/if-test.js"),
   // require("./test_parser/relational-test.js"),
   // require("./test_parser/equality-test.js"),
@@ -63,11 +64,7 @@ eval.evalGlobal(["print", '"test parser----------------"', '"start!"']);
 //---------self defined tests--------------
 const program = `  
 
-{
-  42;
-
-  "hello";
-}
+  let x = 5;
 
   `;
 const ast = parser.parse(program, "AST");
@@ -85,6 +82,8 @@ const eval1 = new Eval();
 const Bothtests = [
   require("./test_both/test_single"),
   require("./test_both/test_math"),
+  require("./test_both/test_block"),
+  require("./test_both/test_variable"),
 ];
 
 const testBoth = (CODE, expected) => {
@@ -100,10 +99,13 @@ Bothtests.forEach((test) => test(testBoth));
 
 const CODE = `  
 
-(2 + 3) * 2;
+
+let x , y = 5;
+x = y * 3;
+x + y -(10 / 5);
 
   `;
 
-const EvalRst = parser1.parse(CODE, "lAST");
-console.log("running code", EvalRst);
-console.log("running result", eval1.evalGlobal(EvalRst));
+const ParseRst = parser1.parse(CODE, "lAST");
+console.log("running code", JSON.stringify(ParseRst, null, 2));
+console.log("running result", eval1.evalGlobal(ParseRst));

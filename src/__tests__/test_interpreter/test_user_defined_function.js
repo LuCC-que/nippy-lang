@@ -42,6 +42,26 @@ module.exports = (eval) => {
     ]),
     160
   );
+  assert.strictEqual(
+    eval.eval([
+      "begin",
+      ["var", "value", 100, "data", 30],
+      [
+        "def",
+        "calc",
+        ["x", "y"],
+        [
+          "begin",
+          ["var", "z", ["+", "x", "y"]],
+          ["def", "inner", ["foo"], ["+", ["+", "foo", "z"], "value"]],
+          "inner",
+        ],
+      ],
+      ["var", "fn", ["calc", "data", 20]],
+      ["fn", 30],
+    ]),
+    180
+  );
   //recursive call
   assert.strictEqual(
     eval.eval([

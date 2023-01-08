@@ -30,6 +30,17 @@ class Eval {
     }
 
     if (exp[0] == "var") {
+      if (exp.length > 3) {
+        let [_, ...list] = exp;
+        let result;
+        while (list.length > 0) {
+          const [name, value, ...temp] = list;
+          list = temp;
+          result = env.define(name, this.eval(value, env));
+        }
+
+        return result;
+      }
       const [_, name, value] = exp;
 
       //make a new env

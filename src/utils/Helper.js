@@ -10,8 +10,25 @@ const isVariableName = (exp) => {
   return typeof exp === "string" && /^[+\-*/&|!<>=a-zA-Z0-9_]*$/.test(exp);
 };
 
+//-----------------used by parser------------------
+
 const _isLiteral = (tokenType) => {
   return ["NUMBER", "STRING", "true", "false", "null"].includes(tokenType);
+};
+
+const _isAssignmentOperator = (tokenType) => {
+  return tokenType === "SIMPLE_ASSIGN" || tokenType === "COMPLEX_ASSIGN";
+};
+
+const _checkValidAssignmentTarget = (node, mode) => {
+  if (
+    node.type === "Identifier" ||
+    node.type === "MemberExpression" ||
+    mode === "lAST"
+  ) {
+    return node;
+  }
+  throw new SyntaxError("Invalide Left-hand side in assignment expression");
 };
 
 //
@@ -20,4 +37,6 @@ module.exports = {
   isString,
   isVariableName,
   _isLiteral,
+  _isAssignmentOperator,
+  _checkValidAssignmentTarget,
 };

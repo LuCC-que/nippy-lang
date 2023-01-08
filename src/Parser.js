@@ -1,6 +1,10 @@
 const { AST, lAST } = require("./utils/Factory");
 const { Tokenizer } = require("./utils/Tokenizer");
-const { _isLiteral } = require("./utils/Helper");
+const {
+  _isLiteral,
+  _isAssignmentOperator,
+  _checkValidAssignmentTarget,
+} = require("./utils/Helper");
 
 class Parser {
   constructor() {
@@ -14,6 +18,8 @@ class Parser {
     //always prepare the next toekennizer here
     this._lookahead = this._tokenizer.getNextToken();
     this._mod = mode === "AST" ? AST : lAST;
+
+    this.mode = mode;
     return this.Program();
   }
 
@@ -74,6 +80,63 @@ class Parser {
     }
   }
 
+  /**
+   * VariableStatement
+   *  : 'let' VariableDeclarationList ';'
+   */
+
+  VariableStatement() {
+    // const variableStatement = this.VariableStatementInit();
+    // this._eat(";");
+    // return variableStatement;
+    this._eat("let");
+    const declarations = this.VariableDeclarationList();
+    this._eat(";");
+    return this._mod.VariableStatement(declarations);
+  }
+
+  /**
+   * VariableDeclarationList
+   *  : VariableDeclaration
+   *  | VariableDeclarationList ',' VariableDeclaration
+   */
+
+  VariableDeclarationList() {
+    const declarations = [];
+
+    do {
+      declarations.push(this.VariableDeclaration());
+    } while (this._lookahead.type === "," && this._eat(","));
+
+    return declarations;
+  }
+
+  /**
+   * VariableDeclaration
+   *  : Identifier OptVariableInitializer
+   */
+  VariableDeclaration() {
+    const id = this.Identifier();
+
+    const init =
+      this._lookahead.type !== ";" && this._lookahead.type !== ","
+        ? this.VariableInitializer()
+        : null;
+
+    return this._mod.VariableDeclaration(id, init);
+  }
+
+  /**
+   * VariableInitializer
+   *  : SIMPLE_ASSIGN AssignmentExpression
+   *
+   */
+  VariableInitializer() {
+    this._eat("SIMPLE_ASSIGN");
+
+    return this.AssignmentExpression();
+  }
+
   BlockStatement() {
     this._eat("{");
     const body = this._lookahead.type !== "}" ? this.StatementList("}") : [];
@@ -109,7 +172,37 @@ class Parser {
    */
 
   Expression() {
-    return this.AdditiveExpression();
+    return this.AssignmentExpression();
+  }
+
+  /**
+   * AssignmentExpression
+   *  : LogicalORExpression
+   *  | LeftHandSideExpression AssignmentOperator AssignmentExpression
+   */
+
+  AssignmentExpression() {
+    // if (this._lookahead.type == "lambda") {
+    //   this._eat("lambda");
+    //   this._eat("(");
+    //   const params =
+    //     this._lookahead.type !== ")" ? this.FormalParameterList() : [];
+    //   this._eat(")");
+    //   const body = this.BlockStatement();
+    //   return this._factory.Lambda(params, body);
+    // }
+
+    const left = this.AdditiveExpression();
+
+    if (!_isAssignmentOperator(this._lookahead.type)) {
+      return left;
+    }
+
+    return this._mod.AssignmentExpression(
+      this.AssignmentOperator().value,
+      _checkValidAssignmentTarget(left, this.mode),
+      this.AssignmentExpression()
+    );
   }
 
   /**
@@ -121,15 +214,17 @@ class Parser {
    */
 
   AdditiveExpression() {
-    let left = this.MultiplicativeExpression();
-    while (this._lookahead.type === "ADDITIVE_OPERATOR") {
-      const operator = this._eat("ADDITIVE_OPERATOR");
-      const right = this.MultiplicativeExpression();
-
-      left = this._mod.AdditiveExpression(operator, left, right);
-    }
-
-    return left;
+    // let left = this.MultiplicativeExpression();
+    // while (this._lookahead.type === "ADDITIVE_OPERATOR") {
+    //   const operator = this._eat("ADDITIVE_OPERATOR");
+    //   const right = this.MultiplicativeExpression();
+    //   left = this._mod.AdditiveExpression(operator, left, right);
+    // }
+    // return left;
+    return this.BinaryExpression(
+      "MultiplicativeExpression",
+      "ADDITIVE_OPERATOR"
+    );
   }
 
   /**
@@ -141,12 +236,27 @@ class Parser {
    */
 
   MultiplicativeExpression() {
-    let left = this.PrimaryExpression();
-    while (this._lookahead.type === "MULTIPLICATIVE_OPERATOR") {
-      const operator = this._eat("MULTIPLICATIVE_OPERATOR");
-      const right = this.PrimaryExpression();
+    // let left = this.PrimaryExpression();
+    // while (this._lookahead.type === "MULTIPLICATIVE_OPERATOR") {
+    //   const operator = this._eat("MULTIPLICATIVE_OPERATOR");
+    //   const right = this.PrimaryExpression();
+    //   left = this._mod.MultiplicativeExpression(operator, left, right);
+    // }
+    // return left;
+    return this.BinaryExpression(
+      "PrimaryExpression",
+      "MULTIPLICATIVE_OPERATOR"
+    );
+  }
 
-      left = this._mod.MultiplicativeExpression(operator, left, right);
+  //A helper function
+  BinaryExpression(builderName, operatorToken) {
+    let left = this[builderName]();
+    while (this._lookahead.type === operatorToken) {
+      const operator = this._eat(operatorToken);
+      const right = this[builderName]();
+
+      left = this._mod.BinaryExpression(operator, left, right);
     }
 
     return left;
@@ -175,6 +285,39 @@ class Parser {
       default:
         return this.LeftHandSideExpression();
     }
+  }
+
+  /**
+   * AssignmentOperator
+   *  : SIMPLE_ASSIGN
+   *  | COMPLEX_ASSIGN
+   */
+
+  AssignmentOperator() {
+    if (this._lookahead.type === "SIMPLE_ASSIGN") {
+      return this._eat("SIMPLE_ASSIGN");
+    }
+    return this._eat("COMPLEX_ASSIGN");
+  }
+
+  /**
+   * LeftHandSideExpression
+   *  : MemberExpression
+   *  ;
+   */
+  LeftHandSideExpression() {
+    return this.Identifier();
+  }
+
+  /**
+   * Identifier
+   *  : IDENTIFIER
+   *  ;
+   */
+
+  Identifier() {
+    const name = this._eat("IDENTIFIER").value;
+    return this._mod.Identifier(name);
   }
 
   /**
