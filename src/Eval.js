@@ -1,4 +1,9 @@
-const { isNumber, isString, isVariableName } = require("./utils/Helper");
+const {
+  isNumber,
+  isString,
+  isVariableName,
+  arrayOP,
+} = require("./utils/Helper");
 const { Transformer } = require("./utils/Transfomer");
 const { Environment } = require("./utils/Environment");
 class Eval {
@@ -29,7 +34,17 @@ class Eval {
       return this._evalBlock(exp, blockEnv);
     }
 
-    if (exp[0] == "var") {
+    if (exp[0] === "list") {
+      const [_, items] = exp;
+
+      let answer = [];
+      items.forEach((item) => {
+        answer.push(this.eval(item, env));
+      });
+      return answer;
+    }
+
+    if (exp[0] === "var") {
       if (exp.length > 3) {
         let [_, ...list] = exp;
         let result;
@@ -49,15 +64,19 @@ class Eval {
     }
 
     if (exp[0] === "set") {
-      const [_, ref, value] = exp;
+      const [tag, ref, value] = exp;
 
       if (ref[0] === "prop") {
         const [_tag, instance, propName] = ref;
         const instanceEnv = this.eval(instance, env);
 
         return instanceEnv.define(propName, this.eval(value, env));
+      } else if (ref[0] === "find") {
+        const [_tag, name, index] = ref;
+        const instance = this.eval(name, env);
+        arrayOP(instance, this.eval(index, env), this.eval(value, env), tag);
+        return instance;
       }
-
       return env.assign(ref, this.eval(value, env));
     }
 
@@ -100,6 +119,13 @@ class Eval {
     //Increment: (++ foo) to-do
 
     if (exp[0] == "++") {
+      const [tag, ref, value] = exp;
+      if (Array.isArray(ref)) {
+        const [_tag, name, index] = ref;
+        const instance = this.eval(name, env);
+        arrayOP(instance, this.eval(index, env), this.eval(value, env), tag);
+        return instance;
+      }
       const whileExp = this._transformer.transformIncToSet(exp);
       return this.eval(whileExp, env);
     }
@@ -107,6 +133,16 @@ class Eval {
     //-------------------------
     //Increment: (-- foo) to-do
     if (exp[0] == "--") {
+      const [tag, ref, value] = exp;
+      if (Array.isArray(ref)) {
+        const [_tag, name, index] = ref;
+        const instance = this.eval(name, env);
+        arrayOP(instance, this.eval(index, env), this.eval(value, env), tag);
+        console.log("----------------------------------");
+        console.log(instance);
+        console.log("----------------------------------");
+        return instance;
+      }
       const whileExp = this._transformer.transformDecToSet(exp);
       return this.eval(whileExp, env);
     }
@@ -115,6 +151,13 @@ class Eval {
     //Increment: (-= foo dec) to-do
 
     if (exp[0] == "-=") {
+      const [tag, ref, value] = exp;
+      if (Array.isArray(ref)) {
+        const [_tag, name, index] = ref;
+        const instance = this.eval(name, env);
+        arrayOP(instance, this.eval(index, env), this.eval(value, env), tag);
+        return instance;
+      }
       const whileExp = this._transformer.transformDecEqToSet(exp);
       return this.eval(whileExp, env);
     }
@@ -122,6 +165,13 @@ class Eval {
     //-------------------------
     //Increment: (+= foo) to-do
     if (exp[0] == "+=") {
+      const [tag, ref, value] = exp;
+      if (Array.isArray(ref)) {
+        const [_tag, name, index] = ref;
+        const instance = this.eval(name, env);
+        arrayOP(instance, this.eval(index, env), this.eval(value, env), tag);
+        return instance;
+      }
       const whileExp = this._transformer.transformIncEqToSet(exp);
       return this.eval(whileExp, env);
     }
@@ -190,10 +240,31 @@ class Eval {
 
     // property access
     if (exp[0] === "prop") {
-      const [_tag, instance, name] = exp;
+      const [_tag, instance, name, values] = exp;
       const instanceEnv = this.eval(instance, env);
 
+      //data structure function
+      if (name == "push") {
+        //if a group of array
+        if (Array.isArray(values)) {
+          values.forEach((value) => {
+            instanceEnv.push(this.eval(value, env));
+          });
+        } else {
+          instanceEnv.push(this.eval(values, env));
+        }
+
+        return instanceEnv;
+      }
       return instanceEnv.lookup(name);
+    }
+
+    // property access
+    if (exp[0] === "find") {
+      const [_, name, value] = exp;
+      const instance = this.eval(name, env);
+
+      return instance[this.eval(value, env)];
     }
 
     if (Array.isArray(exp)) {
@@ -203,7 +274,9 @@ class Eval {
       //these args maybe anothe experssion, another varable
       //any other things, so we need to eval them and then save
       //in the array, slice skip the first (function),
-      const args = exp.slice(1).map((arg) => this.eval(arg, env));
+      const args = exp.slice(1).map((arg) => {
+        return this.eval(arg, env);
+      });
 
       //pre-defined function will be returned as function
       if (typeof fn === "function") {

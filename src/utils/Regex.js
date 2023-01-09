@@ -90,7 +90,10 @@ const Spec = [
   [/^\bsuper\b/, "super"],
   [/^\bthis\b/, "this"],
   [/^\bnew\b/, "new"],
-  [/^\blambda\b/, "lambda"],
+  [/^\blambda\b/, "Lambda"],
+  [/^\bLambda\b/, "Lambda"],
+  [/^\bList\b/, "List"],
+  [/^\blist\b/, "List"],
 
   /*------------------------
     Identifiers case
@@ -108,8 +111,6 @@ const Spec = [
    */
   [/^\=/, "SIMPLE_ASSIGN"],
   [/^[\*\/\+\-]=/, "COMPLEX_ASSIGN"],
-  [/^\+\+/, "COMPLEX_ASSIGN"],
-  [/^\-\-/, "COMPLEX_ASSIGN"],
 
   /*------------------------
     Relational cases
@@ -122,7 +123,11 @@ const Spec = [
    */
   [/^&&/, "LOGICAL_AND"],
   [/^\|\|/, "LOGICAL_OR"],
+
+  //unary case, lowest precedent
   [/^!/, "LOGICAL_NOT"],
+  [/^\+\+/, "++"],
+  [/^\-\-/, "--"],
 
   //--------Operators---------
   [/^[+\-]/, "ADDITIVE_OPERATOR"],

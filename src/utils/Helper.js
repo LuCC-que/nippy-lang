@@ -10,6 +10,26 @@ const isVariableName = (exp) => {
   return typeof exp === "string" && /^[+\-*/&|!<>=a-zA-Z0-9_]*$/.test(exp);
 };
 
+const arrayOP = (array, index, value, OP) => {
+  switch (OP) {
+    case "set":
+      array[index] = value;
+      break;
+    case "+=":
+      array[index] += value;
+      break;
+    case "-=":
+      array[index] -= value;
+      break;
+    case "++":
+      array[index]++;
+      break;
+    case "--":
+      array[index]--;
+      break;
+  }
+};
+
 //-----------------used by parser------------------
 
 const _isLiteral = (tokenType) => {
@@ -36,6 +56,7 @@ module.exports = {
   isNumber,
   isString,
   isVariableName,
+  arrayOP,
   _isLiteral,
   _isAssignmentOperator,
   _checkValidAssignmentTarget,

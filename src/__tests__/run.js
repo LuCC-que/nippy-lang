@@ -22,9 +22,45 @@ const InterpreterTests = [
 const eval = new Eval();
 eval.evalGlobal(["print", '"test Interpreter----------------"', '"start!"']);
 //basic test
-assert.strictEqual(eval.evalGlobal(1), 1);
+assert.deepEqual(eval.eval(["list", [1, 2, 3, 4]]), [1, 2, 3, 4]);
 assert.strictEqual(eval.evalGlobal(["var", "x", 10, "y", 10]), 10);
-assert.strictEqual(eval.evalGlobal("x"), 10);
+assert.deepEqual(eval.evalGlobal("x"), 10);
+assert.deepEqual(
+  eval.evalGlobal(
+    ["var", "x", 10, "y", 10],
+    ["var", "l", ["list", [1, 2, 3, 4, "x", "y"]]]
+  ),
+  [1, 2, 3, 4, 10, 10]
+);
+assert.deepEqual(eval.evalGlobal("l"), [1, 2, 3, 4, 10, 10]);
+assert.deepEqual(
+  eval.evalGlobal(["prop", "l", "push", 5]),
+  [1, 2, 3, 4, 10, 10, 5]
+);
+assert.deepEqual(eval.evalGlobal(["find", "l", 3]), 4);
+assert.deepEqual(
+  eval.evalGlobal([
+    "begin",
+    ["var", "a", 10],
+    ["var", "b", ["list", [0, 1, 2, 3, 4, 5]]],
+    ["prop", "b", "push", ["a"]],
+    ["find", "b", 6],
+  ]),
+  10
+);
+assert.deepEqual(
+  eval.evalGlobal([
+    "begin",
+    ["var", "b", ["list", [0, 1, 2, 3, 4, 5]]],
+    ["find", "b", 3],
+    ["+=", ["find", "b", 3], 1],
+    ["find", "b", 3],
+  ]),
+  4
+);
+// assert.strictEqual(eval.evalGlobal(1), 1);
+
+// assert.strictEqual(eval.evalGlobal("x"), 10);
 
 InterpreterTests.forEach((test) => test(eval));
 //varible test
@@ -43,12 +79,12 @@ const ParserTests = [
   require("./test_parser/relational-test.js"),
   require("./test_parser/equality-test.js"),
   require("./test_parser/logical-test.js"),
-  // require("./test_parser/unary-test.js"),
-  // require("./test_parser/while-test.js"),
-  // require("./test_parser/do-while-test.js"),
-  // require("./test_parser/for-test.js"),
-  // require("./test_parser/function-declaration-test.js"),
-  // require("./test_parser/member-test.js"),
+  require("./test_parser/unary-test.js"),
+  require("./test_parser/while-test.js"),
+  require("./test_parser/do-while-test.js"),
+  require("./test_parser/for-test.js"),
+  require("./test_parser/function-declaration-test.js"),
+  require("./test_parser/member-test.js"),
   // require("./test_parser/call-test.js"),
   // require("./test_parser/class-test.js"),
 ];
@@ -64,7 +100,17 @@ eval.evalGlobal(["print", '"test parser----------------"', '"start!"']);
 //---------self defined tests--------------
 const program = `  
 
-  x > 2 && y < 2 || z == 2;
+
+class Point {
+  def constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+
+  def calc() {
+    return this.x + this.y;
+  }
+}
 
 
   `;
@@ -87,6 +133,10 @@ const Bothtests = [
   require("./test_both/test_variable"),
   require("./test_both/test_if_condition"),
   require("./test_both/test_logical"),
+  require("./test_both/test_unary"),
+  require("./test_both/test_loop"),
+  require("./test_both/test_function"),
+  // require("./test_both/test_list"),
 ];
 
 const testBoth = (CODE, expected) => {
@@ -95,18 +145,41 @@ const testBoth = (CODE, expected) => {
   const parseRst = parser.parse(CODE, "lAST");
   const evalRst = eval.evalGlobal(parseRst);
 
-  assert.strictEqual(evalRst, expected);
+  assert.deepEqual(evalRst, expected);
 };
 
 Bothtests.forEach((test) => test(testBoth));
 
-const CODE = `  
+const CODE = `
 
-  let x = 3, y = 5, z= 3;
-  x > 2 && y < 2 || z == 2;
+class Point {
+  def constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+
+  def calc() {
+    return this.x + this.y;
+  }
+}
+
+class Point3D extends Point {
+  def constructor(x, y, z) {
+    super(x, y);
+    this.z = z;
+  }
+
+  def calc() {
+    return super() + this.z;
+  }
+}
+
+let x = new Point3D(4,3,1);
+x.calc();
+
 
   `;
 
 const ParseRst = parser1.parse(CODE, "lAST");
 console.log("running code", JSON.stringify(ParseRst, null, 2));
-console.log("running result", eval1.evalGlobal(ParseRst));
+// console.log("running result", eval1.evalGlobal(ParseRst));

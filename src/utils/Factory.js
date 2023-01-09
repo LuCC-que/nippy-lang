@@ -102,6 +102,100 @@ const AST = {
       value,
     };
   },
+  UnaryExpression(operator, argument) {
+    return {
+      type: "UnaryExpression",
+      operator,
+      argument,
+    };
+  },
+  WhileStatement(test, body) {
+    return { type: "WhileStatement", test, body };
+  },
+  DoWhileStatement(body, test) {
+    return {
+      type: "DoWhileStatement",
+      body,
+      test,
+    };
+  },
+  ForStatement(init, test, update, body) {
+    return {
+      type: "ForStatement",
+      init,
+      test,
+      update,
+      body,
+    };
+  },
+  FunctionDeclaration(name, params, body) {
+    return { type: "FunctionDeclaration", name, params, body };
+  },
+  LambdaDeclaration(params, body) {
+    return { type: "LambdaDeclaration", params, body };
+  },
+  ListDeclaration(params) {
+    return {
+      type: "ListDeclaration",
+      params,
+    };
+  },
+  ReturnStatement(argument) {
+    return {
+      type: "ReturnStatement",
+      argument,
+    };
+  },
+  MemberExperssion(computed, object, property, value) {
+    if (!value) {
+      return {
+        type: "MemberExpression",
+        computed,
+        object,
+        property,
+      };
+    }
+    return {
+      type: "MemberExpression",
+      computed,
+      object,
+      property,
+      arguments: value,
+    };
+  },
+
+  _CallExpression(callee, arguments) {
+    return {
+      type: "CallExpression",
+      callee,
+      arguments,
+    };
+  },
+  ClassDeclaration(id, superClass, body) {
+    return {
+      type: "ClassDeclaration",
+      id,
+      superClass,
+      body,
+    };
+  },
+  NewExpression(callee, arguments) {
+    return {
+      type: "NewExpression",
+      callee,
+      arguments,
+    };
+  },
+  ThisExpression() {
+    return {
+      type: "ThisExpression",
+    };
+  },
+  Super() {
+    return {
+      type: "Super",
+    };
+  },
 };
 const lAST = {
   Program(body) {
@@ -110,6 +204,9 @@ const lAST = {
 
   BlockStatement(body) {
     return ["begin", ...body];
+  },
+  EmptyStatement() {
+    return;
   },
 
   ExpressionStatement(expression) {
@@ -159,6 +256,58 @@ const lAST = {
 
   NullLiteral(value) {
     return value;
+  },
+  UnaryExpression(operator, argument) {
+    return [operator, argument];
+  },
+  WhileStatement(test, body) {
+    return ["while", test, body];
+  },
+  DoWhileStatement(body, test) {
+    return ["do", body, test];
+  },
+  ForStatement(init, test, update, body) {
+    return ["for", init, test, update, body];
+  },
+  FunctionDeclaration(name, params, body) {
+    return ["def", name, params, body];
+  },
+  ListDeclaration(params) {
+    return ["list", params];
+  },
+  ReturnStatement(argument) {
+    return argument;
+  },
+  LambdaDeclaration(params, body) {
+    return ["lambda", params, body];
+  },
+  MemberExperssion(computed, object, property, value) {
+    if (!computed) {
+      let answer = ["prop", object, property];
+      if (value != null) {
+        answer.push(value);
+      }
+      return answer;
+    }
+    return ["find", object, property];
+  },
+  _CallExpression(callee, arguments) {
+    if (Array.isArray(arguments)) {
+      return [callee, ...arguments];
+    }
+    return [callee, arguments];
+  },
+  ClassDeclaration(id, superClass, body) {
+    return ["class", id, superClass, body];
+  },
+  NewExpression(callee, arguments) {
+    return ["new", callee, ...arguments];
+  },
+  ThisExpression() {
+    return "this";
+  },
+  Super() {
+    return "super";
   },
 };
 
