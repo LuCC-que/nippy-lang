@@ -203,7 +203,7 @@ let p = new Person("Lu Chen", 4);
 
 
 // p.GetName();
-p.SetAge(4);
+// p.SetAge(4);
 p.GetAge();
 p.GetName();
 
