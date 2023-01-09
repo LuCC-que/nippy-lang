@@ -169,9 +169,12 @@ class Eval {
       if (Array.isArray(ref)) {
         const [_tag, name, index] = ref;
         const instance = this.eval(name, env);
+
+        //alter here
         arrayOP(instance, this.eval(index, env), this.eval(value, env), tag);
         return instance;
       }
+
       const whileExp = this._transformer.transformIncEqToSet(exp);
       return this.eval(whileExp, env);
     }

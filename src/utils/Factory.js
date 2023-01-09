@@ -285,7 +285,11 @@ const lAST = {
     if (!computed) {
       let answer = ["prop", object, property];
       if (value != null) {
-        answer.push(value);
+        if (property != "push") {
+          answer = [[...answer], ...value];
+        } else {
+          answer = [...answer, ...value];
+        }
       }
       return answer;
     }
@@ -306,8 +310,8 @@ const lAST = {
   ThisExpression() {
     return "this";
   },
-  Super() {
-    return "super";
+  Super(superClass, _CurMemFunc) {
+    return ["prop", ["super", superClass], _CurMemFunc];
   },
 };
 

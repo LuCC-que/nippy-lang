@@ -58,9 +58,10 @@ assert.deepEqual(
   ]),
   4
 );
-// assert.strictEqual(eval.evalGlobal(1), 1);
 
-// assert.strictEqual(eval.evalGlobal("x"), 10);
+assert.strictEqual(eval.evalGlobal(1), 1);
+
+assert.strictEqual(eval.evalGlobal("x"), 10);
 
 InterpreterTests.forEach((test) => test(eval));
 //varible test
@@ -152,34 +153,62 @@ Bothtests.forEach((test) => test(testBoth));
 
 const CODE = `
 
-class Point {
-  def constructor(x, y) {
-    this.x = x;
-    this.y = y;
+// class Point {
+//   def constructor(x, y) {
+//     this.x = x;
+//     this.y = y;
+//   }
+
+//   def calc() {
+//     return this.x + this.y;
+//   }
+// }
+
+// class Point3D extends Point {
+//   def constructor(x, y, z) {
+//     super(x, y);
+//     this.z = z;
+//   }
+
+//   def calc() {
+//     return super() + this.z;
+//   }
+// }
+
+// let p = new Point3D(4,3,1);
+// let q = list[1,2,3];
+// q.push(0);
+// p.calc();
+class Person {
+
+  def constructor(n, a) {
+    this.name = n;
+    this.age = a;
   }
 
-  def calc() {
-    return this.x + this.y;
+  def GetName(){
+    return this.name;
+  }
+
+  def GetAge(){
+    return this.age;
+  }
+
+  def SetAge(num){
+    this.age += num;
   }
 }
 
-class Point3D extends Point {
-  def constructor(x, y, z) {
-    super(x, y);
-    this.z = z;
-  }
+let p = new Person("Lu Chen", 4);
 
-  def calc() {
-    return super() + this.z;
-  }
-}
 
-let x = new Point3D(4,3,1);
-x.calc();
-
+// p.GetName();
+p.SetAge(4);
+p.GetAge();
+p.GetName();
 
   `;
 
 const ParseRst = parser1.parse(CODE, "lAST");
 console.log("running code", JSON.stringify(ParseRst, null, 2));
-// console.log("running result", eval1.evalGlobal(ParseRst));
+console.log("running result", eval1.evalGlobal(ParseRst));

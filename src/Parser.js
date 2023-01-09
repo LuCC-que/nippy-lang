@@ -18,6 +18,10 @@ class Parser {
     //always prepare the next toekennizer here
     this._lookahead = this._tokenizer.getNextToken();
     this._mod = mode === "AST" ? AST : lAST;
+    this._WorkOnMemFunc = false;
+    this.superClass = null;
+    this._CurMemFunc = null;
+    this._MemFunList = [];
 
     this.mode = mode;
 
@@ -98,8 +102,12 @@ class Parser {
     const superClass =
       this._lookahead.type === "extends" ? this.ClassExtends() : null;
 
+    this._WorkOnMemFunc = true;
+    this._superClass = id;
     const body = this.BlockStatement();
 
+    this._WorkOnMemFunc = false;
+    this.superClass = null;
     return this._mod.ClassDeclaration(id, superClass, body);
   }
 
@@ -323,8 +331,17 @@ class Parser {
     this._eat("(");
     const params =
       this._lookahead.type !== ")" ? this.FormalParameterList() : [];
+    if (this._WorkOnMemFunc) {
+      params.unshift("this");
+
+      //save a name for super cases
+      this._CurMemFunc = name;
+      this._MemFunList.push(name);
+    }
     this._eat(")");
     const body = this.BlockStatement();
+
+    this._CurMemFunc = null;
     return this._mod.FunctionDeclaration(name, params, body);
   }
 
@@ -363,8 +380,11 @@ class Parser {
 
   BlockStatement() {
     this._eat("{");
+    //set to true
+
     const body = this._lookahead.type !== "}" ? this.StatementList("}") : [];
     this._eat("}");
+
     return this._mod.BlockStatement(body);
   }
 
@@ -655,6 +675,10 @@ class Parser {
       callExpression = this._CallExpression(callExpression);
     }
 
+    if (this._WorkOnMemFunc) {
+      callExpression.splice(1, 0, "this");
+    }
+
     return callExpression;
   }
 
@@ -708,6 +732,7 @@ class Parser {
    */
 
   MemberExperssion() {
+    //need to handle the memeber function differently
     let object = this.PrimaryExpression();
     while (this._lookahead.type === "." || this._lookahead.type === "[") {
       if (this._lookahead.type === ".") {
@@ -715,6 +740,9 @@ class Parser {
         const property = this.Identifier();
         if (this._lookahead.type == "(") {
           const value = this.Arguments();
+          if (this._MemFunList.includes(property)) {
+            value.unshift(object);
+          }
           object = this._mod.MemberExperssion(false, object, property, value);
         } else {
           object = this._mod.MemberExperssion(false, object, property);
@@ -857,7 +885,7 @@ class Parser {
   Super() {
     this._eat("super");
 
-    return this._mod.Super();
+    return this._mod.Super(this._superClass, this._CurMemFunc);
   }
 
   _eat(tokenType) {
