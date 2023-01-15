@@ -14,3 +14,24 @@ jobs:
         with:
           node-version: 16
       - run: node ./src/__tests__/run.js
+
+      # connect to docker
+      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - run: docker build -t luccque/nippyLang -f Dockerfile.dev .
+      # - run: docker run -e CI=true luccque/nippyLang npm test
+
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v18
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          application_name: nippyLang
+          environment_name: Nippylang-env
+          existing_bucket_name: elasticbeanstalk-us-east-1-321169752111
+          region: us-east-1
+          version_label: ${{ github.sha }}
+          deployment_package: deploy.zip
+# Nippylang-env.eba-7zm9yujy.us-east-1.elasticbeanstalk.com
