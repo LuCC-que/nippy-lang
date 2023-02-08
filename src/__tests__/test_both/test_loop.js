@@ -6,7 +6,7 @@ module.exports = (test) => {
     for(let i = 0, z=0; i < 10; ++i){
   
       ++j;
-      
+      j -= z; //z is always 0
     }
   
     j;
